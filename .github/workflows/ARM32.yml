@@ -39,6 +39,15 @@ jobs:
           echo "AR=arm-linux-androideabi-ar" >> $GITHUB_ENV
           echo "LD=arm-linux-androideabi-ld" >> $GITHUB_ENV
           echo "RANLIB=arm-linux-androideabi-ranlib" >> $GITHUB_ENV
+          echo "CFLAGS=-march=armv7-a -mfpu=neon" >> $GITHUB_ENV
+          echo "LDFLAGS=" >> $GITHUB_ENV
+
+      - name: Verify compiler
+        run: |
+          which $CC
+          $CC --version
+          which $CXX
+          $CXX --version
 
       - name: Configure Node.js
         run: |
@@ -54,7 +63,7 @@ jobs:
       - name: Install Node.js
         run: make install
 
-      - name: Verify
+      - name: Verify Node.js binary
         run: |
           $HOME/node-android-arm/bin/node -v
 
