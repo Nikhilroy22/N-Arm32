@@ -1,0 +1,65 @@
+name: Build Node.js ARM32
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-arm32:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_NDK_VERSION: "r25b"
+      ANDROID_API_LEVEL: "21"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git python3 make clang curl unzip
+
+      - name: Download Android NDK
+        run: |
+          curl -o android-ndk.zip https://dl.google.com/android/repository/android-ndk-$ANDROID_NDK_VERSION-linux.zip
+          unzip android-ndk.zip -d $HOME
+          echo "ANDROID_NDK=$HOME/android-ndk-$ANDROID_NDK_VERSION" >> $GITHUB_ENV
+          echo "android_ndk_path=$HOME/android-ndk-$ANDROID_NDK_VERSION" >> $GITHUB_ENV
+
+      - name: Setup standalone toolchain
+        run: |
+          $HOME/android-ndk-$ANDROID_NDK_VERSION/build/tools/make_standalone_toolchain.py \
+            --arch arm \
+            --api $ANDROID_API_LEVEL \
+            --install-dir=$HOME/android-toolchain
+          echo "$HOME/android-toolchain/bin" >> $GITHUB_PATH
+          echo "CC=armv7a-linux-androideabi-clang" >> $GITHUB_ENV
+          echo "CXX=armv7a-linux-androideabi-clang++" >> $GITHUB_ENV
+          echo "AR=arm-linux-androideabi-ar" >> $GITHUB_ENV
+          echo "LD=arm-linux-androideabi-ld" >> $GITHUB_ENV
+          echo "RANLIB=arm-linux-androideabi-ranlib" >> $GITHUB_ENV
+
+      - name: Configure Node.js
+        run: |
+          ./configure \
+            --prefix=$HOME/node-android-arm \
+            --cross-compiling \
+            --dest-cpu=arm \
+            --dest-os=android
+
+      - name: Build Node.js
+        run: make -j$(nproc)
+
+      - name: Install Node.js
+        run: make install
+
+      - name: Verify
+        run: |
+          $HOME/node-android-arm/bin/node -v
+
+      - name: Upload Node binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: node-arm32
+          path: $HOME/node-android-arm/bin/node
