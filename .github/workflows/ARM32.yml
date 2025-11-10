@@ -13,7 +13,7 @@ jobs:
       ANDROID_API_LEVEL: "21"
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup dependencies
         run: |
@@ -59,7 +59,7 @@ jobs:
           $HOME/node-android-arm/bin/node -v
 
       - name: Upload Node binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: node-arm32
           path: $HOME/node-android-arm/bin/node
