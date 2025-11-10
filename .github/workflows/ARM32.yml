@@ -33,19 +33,23 @@ jobs:
             --arch arm \
             --api $ANDROID_API_LEVEL \
             --install-dir=$HOME/android-toolchain
-          echo "$HOME/android-toolchain/bin" >> $GITHUB_PATH
           echo "CFLAGS=-march=armv7-a -mfpu=neon" >> $GITHUB_ENV
           echo "LDFLAGS=" >> $GITHUB_ENV
 
       - name: Configure Node.js with compiler variables
         run: |
+          # Add toolchain to PATH for this step
+          export PATH=$HOME/android-toolchain/bin:$PATH
+
+          # Export compiler variables
           export CC=armv7a-linux-androideabi-clang
           export CXX=armv7a-linux-androideabi-clang++
           export AR=arm-linux-androideabi-ar
           export LD=arm-linux-androideabi-ld
           export RANLIB=arm-linux-androideabi-ranlib
-          
+
           # Verify compiler
+          echo "Verifying compilers..."
           which $CC
           $CC --version
           which $CXX
@@ -66,6 +70,7 @@ jobs:
 
       - name: Verify Node.js binary
         run: |
+          echo "Node.js version:"
           $HOME/node-android-arm/bin/node -v
 
       - name: Upload Node binary
